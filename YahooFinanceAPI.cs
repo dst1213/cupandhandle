@@ -23,9 +23,9 @@ namespace CupAndHandle
         public static List<HistoryPrice> GetStockPrices(string symbol, DateTime FromDate, DateTime ToDate)
         { 
             //Check local cache
-            string filepath = @"StockData\" + symbol + "_" +
-            FromDate.Day.ToString() + FromDate.Month.ToString() + FromDate.Year.ToString() + "_" +
-            ToDate.Day.ToString() + ToDate.Month.ToString() + ToDate.Year.ToString() + ".txt";
+            string filepath = @"StockData\" + symbol + "_"
+                + FromDate.ToShortDateString().Replace(@"/", "") + "_" +
+                ToDate.ToShortDateString().Replace(@"/", "") + ".txt";
             
             if (File.Exists(filepath))
             {
@@ -38,18 +38,25 @@ namespace CupAndHandle
                     return YahooFinanceAPI.GetPriceAsync(symbol, FromDate, ToDate);
                 });
 
-                //save this into cache
+                //株価データをローカルに保存
                 SaveStockPricesInFile(symbol, FromDate, ToDate, historyData.Result);
 
                 return historyData.Result;
             }
         }
-
+        /// <summary>
+        /// 株価データをローカルキャッシュからロードする
+        /// </summary>
+        /// <param name="symbol">Ticker Symbol</param>
+        /// <param name="FromDate">開始日</param>
+        /// <param name="ToDate">終了日</param>
+        /// <returns></returns>
         private static List<HistoryPrice> GetStockPricesFromFile (string symbol, DateTime FromDate, DateTime ToDate)
         {
-            string[] pricelines = File.ReadAllLines(@"StockData\" + symbol + "_" +
-                FromDate.Day.ToString() + FromDate.Month.ToString() + FromDate.Year.ToString() + "_" +
-                ToDate.Day.ToString() + ToDate.Month.ToString() + ToDate.Year.ToString() + ".txt");
+            //キャッシュのパス
+            string[] pricelines = File.ReadAllLines(@"StockData\" + symbol + "_"
+                + FromDate.ToShortDateString().Replace(@"/", "") + "_" +
+                ToDate.ToShortDateString().Replace(@"/", "") + ".txt");
 
             List<HistoryPrice> prices = new List<HistoryPrice>();
             foreach (var line in pricelines)
@@ -70,6 +77,13 @@ namespace CupAndHandle
         
         }
 
+        /// <summary>
+        /// 株価をローカルにキャッシュする
+        /// </summary>
+        /// <param name="symbol">Ticker Symbo</param>
+        /// <param name="FromDate">開始日</param>
+        /// <param name="ToDate">終了日</param>
+        /// <param name="prices"></param>
         private static void SaveStockPricesInFile(string symbol, DateTime FromDate, DateTime ToDate, List<HistoryPrice> prices)
         {
             var sb = new StringBuilder();
@@ -88,10 +102,10 @@ namespace CupAndHandle
                 Directory.CreateDirectory(@"StockData");
             } 
 
-
-            File.WriteAllText(@"StockData\" + symbol + "_" +
-                FromDate.Day.ToString() + FromDate.Month.ToString() + FromDate.Year.ToString() + "_" +
-                ToDate.Day.ToString() + ToDate.Month.ToString() + ToDate.Year.ToString() + ".txt", sb.ToString(), Encoding.UTF8);
+            ///データをファイルに書き出す
+            File.WriteAllText(@"StockData\" + symbol + "_" 
+                + FromDate.ToShortDateString().Replace(@"/", "") + "_" +
+                ToDate.ToShortDateString().Replace(@"/", "") + ".txt", sb.ToString(), Encoding.UTF8);
         }
 
         /// <summary>
